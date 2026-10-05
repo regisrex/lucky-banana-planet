@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kinya — Rwandan radio, transcribed live</title>
+<style>
+  :root{
+    --bg:#fff; --panel:#f4f6f8; --line:#e2e6ea;
+    --fg:#10151b; --dim:#67748a; --faint:#9aa6b6;
+    --accent:#0a9e74; --bad:#d93b45;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);padding:26px 18px;
+       font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:860px;margin:0 auto}
+
+  h1{font-size:17px;margin:0 0 3px;font-weight:650;letter-spacing:-.02em}
+  h1 b{color:var(--accent)}
+  .tag{color:var(--faint);font-size:12.5px;margin-bottom:24px}
+
+  /* ---- step 1: pick a station ---- */
+  .stations{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:26px}
+  .st{display:flex;align-items:center;gap:9px;padding:11px 16px;cursor:pointer;
+      background:var(--panel);border:1px solid var(--line);border-radius:999px;
+      font-size:14px;font-weight:550;transition:.18s;user-select:none}
+  .st:hover{border-color:#c3ccd6;transform:translateY(-1px)}
+  .st.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:650}
+  .st.down{opacity:.35}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex:none}
+  .st .dot{background:#9cc9b8}
+  .st.on .dot{background:#fff}
+  .eq{display:inline-flex;gap:2px;align-items:flex-end;height:11px;flex:none}
+  .eq i{width:2.5px;background:#fff;border-radius:1px;animation:eq .85s ease-in-out infinite}
+  .eq i:nth-child(2){animation-delay:.14s}.eq i:nth-child(3){animation-delay:.28s}
+  @keyframes eq{0%,100%{height:3px}50%{height:11px}}
+
+  /* ---- step 2: waves ---- */
+  .stage{position:relative;margin-bottom:8px}
+  #wave{display:block;width:100%;height:120px;border-radius:12px;background:var(--panel)}
+  .hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+        color:var(--faint);font-size:13.5px;pointer-events:none;text-align:center;padding:16px}
+  .status{font-family:var(--mono);font-size:11px;color:var(--faint);
+          margin-bottom:22px;height:16px}
+  .status b{color:var(--accent);font-weight:600}
+  .status.warn b{color:#b26a00}
+
+  /* ---- step 3: words ---- */
+  #feed{display:flex;flex-direction:column;gap:14px;height:340px;overflow-y:auto;
+        scroll-behavior:smooth;scrollbar-width:thin;
+        scrollbar-color:#cfd6de transparent;mask-image:linear-gradient(to bottom,transparent,#000 36px);-webkit-mask-image:linear-gradient(to bottom,transparent,#000 36px)}
+  #feed::-webkit-scrollbar{width:7px}
+  #feed::-webkit-scrollbar-thumb{background:#d4dae1;border-radius:4px}
+  .tx{display:flex;gap:14px;animation:in .45s ease}
+  @keyframes in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .tx .ts{font-family:var(--mono);font-size:11px;color:var(--faint);
+          white-space:nowrap;padding-top:5px;flex:none;width:52px}
+  .tx .txt{font-size:18px;line-height:1.55;letter-spacing:-.01em;transition:color .5s}
+  .tx:last-child .txt{color:#000}
+  .tx:not(:last-child) .txt{color:var(--dim)}
+  .jump{position:absolute;right:0;bottom:-6px;font-family:var(--mono);font-size:10.5px;
+        background:var(--accent);color:#fff;border:0;border-radius:999px;
+        box-shadow:0 2px 10px -2px rgba(10,158,116,.5);
+        padding:5px 12px;cursor:pointer;font-weight:650;display:none}
+  .feedwrap{position:relative}
+  .empty{color:var(--faint);font-size:13.5px;padding:34px 0;text-align:center}
+
+  /* ---- vitals: one quiet strip ---- */
+  .vitals{margin-top:34px;padding-top:15px;border-top:1px solid var(--line);
+          display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+          font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .cores{display:flex;gap:2.5px;align-items:flex-end;height:17px}
+  .cores i{width:5px;background:var(--accent);border-radius:1px;height:2px;
+           transition:height .35s,background .35s;display:block}
+  .vitals b{color:var(--dim);font-weight:600;font-variant-numeric:tabular-nums}
+  .spacer{flex:1}
+
+  .pickrow{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .pickrow label{font-family:var(--mono);font-size:10.5px;color:var(--faint);
+                 text-transform:uppercase;letter-spacing:.08em}
+  #model{font:inherit;font-size:13.5px;font-weight:550;padding:8px 32px 8px 13px;
+         border-radius:10px;border:1px solid var(--line);background:var(--panel);
+         color:var(--fg);cursor:pointer;appearance:none;
+         background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2367748a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+         background-repeat:no-repeat;background-position:right 12px center}
+  #model:hover{border-color:#c3ccd6}
+  .mnote{font-family:var(--mono);font-size:11px;color:var(--faint)}
+  .mnote.warn{color:#b26a00}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1><b>kinya</b> — Rwandan radio, transcribed live</h1>
+  <div class="tag">Click a station. You'll hear it, see it, and read it in Kinyarwanda.</div>
+
+  <div class="pickrow">
+    <label for="model">model</label>
+    <select id="model"></select>
+    <span class="mnote" id="mnote"></span>
+  </div>
+
+  <div class="stations" id="stations"></div>
+
+  <div class="stage">
+    <canvas id="wave"></canvas>
+    <div class="hint" id="hint">pick a station above</div>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="feedwrap">
+    <div id="feed"><div class="empty">words will appear here</div></div>
+    <button class="jump" id="jump">↓ latest</button>
+  </div>
+
+  <div class="vitals">
+    <span class="cores" id="cores"></span>
+    <span>cpu <b id="cpu">—</b></span>
+    <span>ram <b id="ram">—</b></span>
+    <span class="spacer"></span>
+    <span id="host"></span>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const heat = p => p<50?'#0a9e74':p<80?'#c97f00':'#d93b45';
+let STATIONS=[], active=null, audio=null, actx=null, analyser=null, raf=null;
+let MODELS=null, curModel=null;
+
+/* ---------- stations ---------- */
+async function load(){
+  const d = await (await fetch('/api/stations')).json();
+  STATIONS = d.stations;
+  $('#host').textContent = `${d.host.cpu} · ${d.host.cores} cores`;
+  render();
+  await loadModels();
+}
+
+async function loadModels(){
+  MODELS = await (await fetch('/api/models')).json();
+  curModel = MODELS.default;
+  const sel = $('#model');
+  const grp = (label, items, disabled) => {
+    const og = document.createElement('optgroup'); og.label = label;
+    items.forEach(m=>{
+      const o = document.createElement('option');
+      o.value = m.id; o.textContent = m.label; o.dataset.note = m.note;
+      if(disabled) o.disabled = true;
+      og.appendChild(o);
+    });
+    return og;
+  };
+  sel.innerHTML='';
+  sel.appendChild(grp('On this Mac', MODELS.local, false));
+  sel.appendChild(grp(MODELS.openrouter_key?'OpenRouter (Gemini)':'OpenRouter — set OPENROUTER_API_KEY',
+                      MODELS.openrouter, !MODELS.openrouter_key));
+  sel.value = curModel;
+  updateMnote();
+  sel.onchange = ()=>{
+    curModel = sel.value;
+    updateMnote();
+    if(active) sendStart(active);     // swap model live on the current station
+  };
+}
+function updateMnote(){
+  const o = $('#model').selectedOptions[0];
+  const note = o ? o.dataset.note : '';
+  const isOR = curModel && curModel.startsWith('openrouter:');
+  const m = $('#mnote');
+  m.textContent = note || '';
+  m.className = 'mnote' + ((isOR && MODELS && !MODELS.openrouter_key) ? ' warn' : '');
+}
+function sendStart(id){
+  return fetch('/api/asr/start?station='+encodeURIComponent(id)+'&model='+encodeURIComponent(curModel))
+    .then(r=>r.json()).then(d=>{ if(!d.ok) console.warn(d.msg); });
+}
+function render(){
+  $('#stations').innerHTML = STATIONS.map(s=>`
+    <div class="st ${active===s.id?'on':''} ${s.up===false?'down':''}" data-id="${s.id}">
+      ${active===s.id?'<span class="eq"><i></i><i></i><i></i></span>':'<span class="dot"></span>'}
+      ${esc(s.name)}
+    </div>`).join('');
+  document.querySelectorAll('.st').forEach(t=>t.onclick=()=>pick(t.dataset.id));
+}
+
+/* ---------- one click does everything ---------- */
+async function pick(id){
+  if(active===id) return stop();
+  const st = STATIONS.find(s=>s.id===id);
+  active=id; render();
+  $('#hint').style.display='none';
+  setStatus(`${st.name} — starting…`);
+
+  if(audio){ audio.pause(); audio.src=''; }
+  audio = new Audio('/stream/'+id);
+  audio.crossOrigin='anonymous';
+  try{
+    if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended') await actx.resume();
+    const src = actx.createMediaElementSource(audio);
+    analyser = actx.createAnalyser();
+    analyser.fftSize=2048; analyser.smoothingTimeConstant=.78;
+    src.connect(analyser); analyser.connect(actx.destination);
+  }catch(e){ console.warn(e); }
+  try{ await audio.play(); }
+  catch(e){ $('#hint').style.display='flex'; $('#hint').textContent='tap again to allow audio'; }
+
+  if(!raf) loop();
+  sendStart(id);
+}
+function stop(){
+  active=null; render();
+  if(audio){ audio.pause(); audio.src=''; audio=null; }
+  analyser=null;
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  c2.clearRect(0,0,cv.width,cv.height);
+  $('#hint').style.display='flex'; $('#hint').textContent='pick a station above';
+  setStatus('');
+  fetch('/api/asr/stop');
+}
+function setStatus(t, warn){
+  $('#status').className = 'status'+(warn?' warn':'');
+  $('#status').innerHTML = t;
+}
+
+/* ---------- waves ---------- */
+const cv=$('#wave'), c2=cv.getContext('2d');
+function fit(){ const r=cv.getBoundingClientRect(), d=devicePixelRatio||1;
+  cv.width=r.width*d; cv.height=r.height*d; c2.setTransform(d,0,0,d,0,0); }
+addEventListener('resize',fit); fit();
+
+function loop(){
+  raf=requestAnimationFrame(loop);
+  const W=cv.clientWidth, H=cv.clientHeight, mid=H/2;
+  c2.clearRect(0,0,W,H);
+  if(!analyser) return;
+  const f=new Uint8Array(analyser.frequencyBinCount);
+  analyser.getByteFrequencyData(f);
+  const bars=64, step=Math.floor(f.length*.6/bars), bw=W/bars;
+  const g=c2.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#0a9e74'); g.addColorStop(.6,'#2f82d8'); g.addColorStop(1,'#7b4fd0');
+  c2.fillStyle=g; c2.shadowColor='rgba(10,158,116,.22)'; c2.shadowBlur=8;
+  for(let i=0;i<bars;i++){
+    let s=0; for(let j=0;j<step;j++) s+=f[i*step+j];
+    const v=(s/step)/255, h=Math.max(2, v*v*(H*.88));
+    c2.fillRect(i*bw+1, mid-h/2, bw-2.5, h);
+  }
+  c2.shadowBlur=0;
+}
+
+/* ---------- live ---------- */
+const es = new EventSource('/events');
+es.addEventListener('vitals', e=>{
+  const v=JSON.parse(e.data), box=$('#cores');
+  if(box.children.length!==v.cores.length)
+    box.innerHTML = v.cores.map(()=>'<i></i>').join('');
+  v.cores.forEach((c,i)=>{ const b=box.children[i];
+    b.style.height=Math.max(2,c/100*17)+'px'; b.style.background=heat(c); });
+  $('#cpu').textContent=v.cpu.toFixed(0)+'%';
+  $('#ram').textContent=v.mem.pct+'%';
+});
+es.addEventListener('station', e=>{
+  const s=JSON.parse(e.data), i=STATIONS.findIndex(x=>x.id===s.id);
+  if(i>=0){ Object.assign(STATIONS[i],s); render(); }
+});
+es.addEventListener('asr', e=>{
+  const a=JSON.parse(e.data);
+  if(!active) return;
+  const nm = (STATIONS.find(s=>s.id===active)||{}).name || '';
+  if(a.state==='loading'){
+    setStatus('warming up the model — first click only, about a minute', true);
+    $('#feed').innerHTML='<div class="empty">warming up…</div>';
+  } else if(a.state==='running'){
+    const ml = a.model ? a.model.split(/[:/]/).pop() : '';
+    setStatus(`${nm} · ${ml} · <b>${a.chunks}</b> chunks · <b>${a.rtf??'—'}</b> rtf`);
+  } else if(a.state==='error'){
+    setStatus('error: '+esc(a.detail), true);
+  }
+});
+const feed = $('#feed'), jump = $('#jump');
+const atBottom = () => feed.scrollHeight - feed.scrollTop - feed.clientHeight < 70;
+feed.addEventListener('scroll', ()=>{ jump.style.display = atBottom() ? 'none' : 'block'; });
+jump.onclick = ()=>{ feed.scrollTop = feed.scrollHeight; jump.style.display='none'; };
+
+es.addEventListener('tx', e=>{
+  const t=JSON.parse(e.data);
+  if(feed.querySelector('.empty')) feed.innerHTML='';
+  const stick = atBottom();               // decide BEFORE the DOM grows
+  const d=document.createElement('div');
+  d.className='tx';
+  d.innerHTML=`<span class="ts">${t.t}</span><span class="txt">${esc(t.text)}</span>`;
+  feed.appendChild(d);
+  while(feed.children.length>60) feed.firstChild.remove();
+  // follow the latest line, unless the viewer has deliberately scrolled back
+  if(stick) feed.scrollTop = feed.scrollHeight; else jump.style.display='block';
+});
+load();
+</script>
+</body>
+</html>
