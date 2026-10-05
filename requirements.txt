@@ -1,0 +1,11 @@
+# Core harness (pindo + dump backends)
+requests>=2.31
+certifi>=2024.2
+
+# Local open-model backend. torch 2.8 works on python 3.9 / Apple Silicon MPS.
+torch>=2.2
+transformers>=4.40        # w2v-bert-2.0 needs >=4.38
+numpy>=1.24
+
+# System dependency, NOT pip-installable:
+#   brew install ffmpeg

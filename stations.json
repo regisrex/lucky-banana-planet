@@ -1,0 +1,14 @@
+{
+  "_verified": "2026-10-05 by probing icy-name headers + ffmpeg decode test",
+  "_note": "Shoutcast DNAS v2.6.0 keys streams by PORT, not path. Any path on a live port returns that station's audio, so an HTTP 200 proves nothing on its own; icy-name is the real identity check.",
+  "stations": [
+    {"id": "rwanda",    "name": "Radio Rwanda",      "icy_name": "Radio Rwanda",      "url": "https://listen.rba.co.rw:8008/rwanda",    "bitrate": 128, "sample_rate": 48000, "tls": true,  "lang": "rw", "notes": "National. Cleanest news/anchor speech - best WER baseline."},
+    {"id": "magic",     "name": "Magic FM 90.7",     "icy_name": "90.7 Magic FM",     "url": "http://listen.rba.co.rw:8080/",           "bitrate": 160, "sample_rate": 48000, "tls": false, "lang": "rw", "notes": "HTTP ONLY - port 8080 does not serve TLS. Heavy code-switching rw/en/fr + music."},
+    {"id": "rusizi",    "name": "Radio Rusizi",      "icy_name": "Radio Rusizi",      "url": "https://listen.rba.co.rw:8009/rusizi",    "bitrate": 128, "sample_rate": 44100, "tls": true,  "lang": "rw", "notes": "Regional, western dialect."},
+    {"id": "huye",      "name": "Radio Huye",        "icy_name": "Radio Huye",        "url": "https://listen.rba.co.rw:5053/huye",      "bitrate": 160, "sample_rate": 48000, "tls": true,  "lang": "rw", "notes": "Regional, southern. Highest bitrate of the regionals."},
+    {"id": "rubavu",    "name": "Radio Rubavu",      "icy_name": "Radio RUBAVU",      "url": "https://listen.rba.co.rw:8004/rubavu",    "bitrate": 96,  "sample_rate": 48000, "tls": true,  "lang": "rw", "notes": "Regional, north-west. 96kbps - lowest-quality stress test."},
+    {"id": "inteko",    "name": "Radio Inteko 101.5","icy_name": "Radio Inteko 101.5","url": "https://listen.rba.co.rw:8007/inteko",    "bitrate": 48,  "sample_rate": 44100, "tls": true,  "lang": "rw", "notes": "Parliament. 48kbps - WORST case for ASR, but near-pure formal speech, no music."},
+    {"id": "musanze",   "name": "Radio Musanze",     "icy_name": null,                "url": "https://listen.rba.co.rw:8003/musanze",   "bitrate": 128, "sample_rate": 48000, "tls": true,  "lang": "rw", "notes": "icy-name is 'No Name' - identity taken from RBA player page, NOT confirmed by metadata."},
+    {"id": "nyagatare", "name": "Radio Nyagatare",   "icy_name": null,                "url": "https://listen.rba.co.rw:3053/nyagatare", "bitrate": 128, "sample_rate": 44100, "tls": true,  "lang": "rw", "notes": "icy-name is 'No Name' - identity taken from RBA player page, NOT confirmed by metadata."}
+  ]
+}
